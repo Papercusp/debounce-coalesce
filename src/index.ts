@@ -97,11 +97,12 @@ export type FloorDecision<T> =
 
 /** Fold a non-empty list of fires into their union. */
 export function coalesce<T>(fires: Fire<T>[]): Coalesced<T> {
-  if (fires.length === 0) throw new Error('coalesce: empty fires');
+  const latest = fires[fires.length - 1];
+  if (latest === undefined) throw new Error('coalesce: empty fires');
   return {
     count: fires.length,
     fires,
-    latest: fires[fires.length - 1],
+    latest,
     urgent: fires.some((f) => f.urgent === true),
   };
 }
@@ -125,9 +126,10 @@ export function nextDueAt<T>(opts: {
   cfg: FloorConfig;
 }): number | null {
   const { lastWokenAt, pending, cfg } = opts;
-  if (pending.length === 0) return null;
+  const head = pending[0];
+  if (head === undefined) return null;
   const minSleep = normMinSleep(cfg);
-  const firstAt = pending[0].at;
+  const firstAt = head.at;
   const leading = cfg.leadingEdge !== false;
   const floorAllowedAt =
     lastWokenAt != null
